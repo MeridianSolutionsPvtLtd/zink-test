@@ -1,0 +1,446 @@
+name: Build and Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+  repository_dispatch:
+    types: [frontend-updated]
+
+env:
+  FRONTEND_REPO: MeridianAI-AKS/meridianai-stockpulse-frontend
+  FRONTEND_CHECKOUT_PATH: frontend
+  FRONTEND_BUILD_DIR: dist
+  BACKEND_STATIC_DIR: public
+
+  CONTAINER_NAME: main
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  WEBAPP_NAME: ${{ secrets.WEBAPP_NAME }}
+
+jobs:
+
+  build-and-deploy:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+
+      # -----------------------------
+      # Checkout Backend
+      # -----------------------------
+      - name: Checkout backend
+        uses: actions/checkout@v5
+
+
+      # -----------------------------
+      # Checkout Frontend
+      # -----------------------------
+      - name: Checkout frontend repo
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.FRONTEND_REPO }}
+          ref: main
+          path: ${{ env.FRONTEND_CHECKOUT_PATH }}
+          token: ${{ secrets.FRONTEND_REPO_TOKEN || github.token }}
+          fetch-depth: 0
+
+
+      # -----------------------------
+      # Patch Frontend API Config
+      # -----------------------------
+      - name: Patch frontend API config
+        working-directory: ${{ env.FRONTEND_CHECKOUT_PATH }}
+        run: |
+          set -euo pipefail
+
+          cat > src/config.ts << 'EOF'
+
+          function isLoopbackUrl(url: string): boolean {
+            return /^(https?:\/\/)?(127\.0\.0\.1|localhost)(:\d+)?\/?$/i.test(url.trim());
+          }
+
+          function apiBase(): string {
+            const env = import.meta.env.VITE_API_URL;
+            if (typeof env === 'string' && env.trim() !== '') {
+              const cleaned = env.trim().replace(/\/$/, '');
+              if (!import.meta.env.DEV && isLoopbackUrl(cleaned)) {
+                if (typeof window !== 'undefined' && window.location?.origin) {
+                  return window.location.origin.replace(/\/$/, '');
+                }
+                return '';
+              }
+              return cleaned;
+            }
+
+            if (typeof window !== 'undefined' && window.location?.origin) {
+              const { origin, hostname } = window.location;
+              if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://127.0.0.1:5001';
+              }
+              return origin.replace(/\/$/, '');
+            }
+            return 'http://127.0.0.1:5001';
+          }
+
+          export const API_URL = `${apiBase()}/api`.replace(/([^:]\/)\/+/g, '$1');
+
+          export async function readApiJson<T = unknown>(res: Response): Promise<T> {
+            const text = await res.text();
+            const trimmed = text.trim();
+            if (!trimmed) {
+              throw new Error(`Empty response from API (${res.status})`);
+            }
+            if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) {
+              throw new Error(
+                `API returned HTML instead of JSON (${res.status}). Backend /api proxy is missing or VITE_API_URL is wrong.`
+              );
+            }
+            try {
+              return JSON.parse(trimmed) as T;
+            } catch (err) {
+              const preview = trimmed.slice(0, 80).replace(/\s+/g, ' ');
+              const why = err instanceof Error ? err.message : 'Invalid JSON';
+              throw new Error(`${why} — body starts: ${preview}`);
+            }
+          }
+
+          EOF
+
+
+      # -----------------------------
+      # Build Frontend
+      # -----------------------------
+      - name: Build frontend
+        working-directory: ${{ env.FRONTEND_CHECKOUT_PATH }}
+
+        env:
+          VITE_API_URL: ${{ secrets.WEBAPP_URL }}
+
+        run: |
+          set -euo pipefail
+
+          npm ci
+          npm run build
+
+          test -f "${{ env.FRONTEND_BUILD_DIR }}/index.html"
+
+
+      # -----------------------------
+      # Copy Frontend into Backend
+      # -----------------------------
+      - name: Copy frontend build into backend public/
+        run: |
+
+          set -euo pipefail
+
+          mkdir -p "${{ env.BACKEND_STATIC_DIR }}"
+
+          rm -rf "${{ env.BACKEND_STATIC_DIR }}"/*
+
+          cp -a \
+            "${{ env.FRONTEND_CHECKOUT_PATH }}/${{ env.FRONTEND_BUILD_DIR }}/." \
+            "${{ env.BACKEND_STATIC_DIR }}/"
+
+          ls -la "${{ env.BACKEND_STATIC_DIR }}"
+
+          test -f "${{ env.BACKEND_STATIC_DIR }}/index.html"
+
+
+      # -----------------------------
+      # Azure Login
+      # -----------------------------
+      - name: Azure Login
+        uses: azure/login@v2
+
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+
+      # -----------------------------
+      # Resolve Resource Group
+      # -----------------------------
+      - name: Resolve resource group
+
+        id: rg
+
+        run: |
+
+          set -euo pipefail
+
+          RG="${{ secrets.WEBAPP_RG }}"
+
+          if [ -z "$RG" ]; then
+            RG="${{ secrets.ACR_RG }}"
+          fi
+
+          if [ -z "$RG" ]; then
+            echo "ERROR: Set WEBAPP_RG or ACR_RG."
+            exit 1
+          fi
+
+          if [ -z "${{ secrets.ACR_NAME }}" ] ||
+             [ -z "${{ secrets.WEBAPP_NAME }}" ]; then
+
+            echo "ERROR: ACR_NAME and WEBAPP_NAME are required."
+            exit 1
+          fi
+
+          echo "rg=$RG" >> "$GITHUB_OUTPUT"
+
+
+      # -----------------------------
+      # Login to ACR
+      # -----------------------------
+      - name: Log in to ACR
+
+        uses: azure/docker-login@v2
+
+        with:
+          login-server: ${{ env.ACR_NAME }}.azurecr.io
+          username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
+          password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+
+
+      # =====================================================
+      # BUILD + PUSH
+      # =====================================================
+      - name: Build and Push Docker Image
+
+        run: |
+
+          set -euo pipefail
+
+          IMAGE="${{ env.ACR_NAME }}.azurecr.io/${{ env.CONTAINER_NAME }}"
+
+          TAG="${{ github.sha }}"
+
+          echo "Building image:"
+          echo "${IMAGE}:${TAG}"
+
+          docker build \
+            -t "${IMAGE}:${TAG}" \
+            -t "${IMAGE}:latest" \
+            .
+
+          docker push "${IMAGE}:${TAG}"
+
+          docker push "${IMAGE}:latest"
+
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${TAG}" >> "$GITHUB_ENV"
+
+
+      # =====================================================
+      # APP SETTINGS
+      # =====================================================
+      - name: Inject App Settings from GitHub Secrets
+
+        env:
+
+          APP_AZURE_TENANT_ID:
+            ${{ secrets.APP_AZURE_TENANT_ID }}
+
+          APP_AZURE_CLIENT_ID:
+            ${{ secrets.APP_AZURE_CLIENT_ID }}
+
+          APP_AZURE_CLIENT_SECRET:
+            ${{ secrets.APP_AZURE_CLIENT_SECRET }}
+
+          APP_AZURE_STORAGE_CONNECTION_STRING:
+            ${{ secrets.APP_AZURE_STORAGE_CONNECTION_STRING }}
+
+          APP_AZURE_STORAGE_ACCOUNT:
+            ${{ secrets.APP_AZURE_STORAGE_ACCOUNT }}
+
+          APP_AZURE_STORAGE_CONTAINER:
+            ${{ secrets.APP_AZURE_STORAGE_CONTAINER }}
+
+        run: |
+
+          set -euo pipefail
+
+          RG="${{ steps.rg.outputs.rg }}"
+
+          STORAGE_ACCOUNT="${APP_AZURE_STORAGE_ACCOUNT:-zinklondon}"
+
+          STORAGE_CONTAINER="${APP_AZURE_STORAGE_CONTAINER:-zinc-data}"
+
+          az webapp config appsettings set \
+            --name "${{ env.WEBAPP_NAME }}" \
+            --resource-group "$RG" \
+            --settings \
+              DATABASE_BACKEND=blob \
+              AZURE_TENANT_ID="$APP_AZURE_TENANT_ID" \
+              AZURE_CLIENT_ID="$APP_AZURE_CLIENT_ID" \
+              AZURE_CLIENT_SECRET="$APP_AZURE_CLIENT_SECRET" \
+              AZURE_STORAGE_CONNECTION_STRING="$APP_AZURE_STORAGE_CONNECTION_STRING" \
+              AZURE_STORAGE_ACCOUNT="$STORAGE_ACCOUNT" \
+              AZURE_STORAGE_CONTAINER="$STORAGE_CONTAINER" \
+              AZURE_BLOB_INPUT_PREFIX=input/ \
+              AZURE_BLOB_OUTPUT_PREFIX=output/ \
+              PORT=80 \
+              WEBSITES_PORT=80 \
+              WEBSITES_CONTAINER_START_TIME_LIMIT=1800 \
+              WEBSITES_HEALTHCHECK_PATH=/api/health \
+              DASHBOARD_WARM_ON_STARTUP=1 \
+              DASHBOARD_HEAVY_WARM=0 \
+              DASHBOARD_WARM_PARQUET_ONLY=1 \
+              ANALYTICS_QUERY_ENGINE=duckdb \
+              ANALYTICS_DUCKDB_MEMORY=4GB \
+              ANALYTICS_DUCKDB_THREADS=2 \
+              CURRENT_SOH_SOURCE=soh_master \
+              PAGE_CACHE_BLOB=1 \
+              PAGE_CACHE_BLOB_REFRESH_S=300 \
+              DAILY_PIPELINE_SCHEDULER=1 \
+              DAILY_PIPELINE_HOUR=8 \
+              DAILY_PIPELINE_MINUTE=0 \
+              DAILY_PIPELINE_CATCHUP_MINUTES=90 \
+              DOCKER_ENABLE_CI=true
+
+          # Keep the single worker alive through long pipeline/merge jobs (P1v3+).
+          # Without Always On, idle recycle mid-step looks like a silent fail.
+          az webapp config set \
+            --name "${{ env.WEBAPP_NAME }}" \
+            --resource-group "$RG" \
+            --always-on true \
+            >/dev/null
+
+
+      # =====================================================
+      # CONFIGURE APP SERVICE IMAGE
+      # =====================================================
+      - name: Configure Web App for ACR pull + image
+
+        run: |
+
+          set -euo pipefail
+
+          RG="${{ steps.rg.outputs.rg }}"
+
+          WEBAPP="${{ env.WEBAPP_NAME }}"
+
+          ACR="${{ env.ACR_NAME }}"
+
+          ACR_LOWER=$(echo "$ACR" | tr '[:upper:]' '[:lower:]')
+
+          # IMPORTANT:
+          # Use the exact GitHub SHA tag
+
+          IMAGE="${ACR_LOWER}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}"
+
+          REGISTRY_URL="https://${ACR_LOWER}.azurecr.io"
+
+          APP_ID=$(az webapp show \
+            --name "$WEBAPP" \
+            --resource-group "$RG" \
+            --query id \
+            -o tsv)
+
+
+          # Enable Managed Identity
+
+          az webapp identity assign \
+            --name "$WEBAPP" \
+            --resource-group "$RG" \
+            >/dev/null
+
+
+          PRINCIPAL_ID=$(az webapp identity show \
+            --name "$WEBAPP" \
+            --resource-group "$RG" \
+            --query principalId \
+            -o tsv)
+
+
+          ACR_ID=$(az acr show \
+            --name "$ACR" \
+            --query id \
+            -o tsv)
+
+
+          # Check / assign AcrPull
+
+          USE_MI=false
+
+          if az role assignment list \
+            --assignee-object-id "$PRINCIPAL_ID" \
+            --scope "$ACR_ID" \
+            --role AcrPull \
+            --query "[0].id" \
+            -o tsv | grep -q .; then
+
+            echo "AcrPull already present"
+
+            USE_MI=true
+
+          elif az role assignment create \
+            --assignee-object-id "$PRINCIPAL_ID" \
+            --assignee-principal-type ServicePrincipal \
+            --role AcrPull \
+            --scope "$ACR_ID" \
+            2>/dev/null; then
+
+            echo "AcrPull assigned"
+
+            USE_MI=true
+
+            sleep 30
+
+          else
+
+            echo "Using ACR credentials"
+
+          fi
+
+
+          # Always configure ACR admin credentials for reliable image pull without ACRTokenRetrievalFailure
+          az acr update \
+            --name "$ACR" \
+            --admin-enabled true
+
+          REG_USER=$(az acr credential show \
+            --name "$ACR" \
+            --query username \
+            -o tsv)
+
+          REG_PASS=$(az acr credential show \
+            --name "$ACR" \
+            --query "passwords[0].value" \
+            -o tsv)
+
+          az resource update \
+            --ids "$APP_ID" \
+            --api-version "2024-11-01" \
+            --set properties.siteConfig.acrUseManagedIdentityCreds=false || true
+
+          az webapp config container set \
+            --name "$WEBAPP" \
+            --resource-group "$RG" \
+            --docker-custom-image-name "$IMAGE" \
+            --docker-registry-server-url "$REGISTRY_URL" \
+            --docker-registry-server-user "$REG_USER" \
+            --docker-registry-server-password "$REG_PASS"
+
+          echo "Configured image:"
+          echo "$IMAGE"
+
+
+      # =====================================================
+      # RESTART
+      # =====================================================
+      - name: Restart Web App after container update
+
+        run: |
+
+          set -euo pipefail
+
+          az webapp restart \
+            --name "${{ env.WEBAPP_NAME }}" \
+            --resource-group "${{ steps.rg.outputs.rg }}"

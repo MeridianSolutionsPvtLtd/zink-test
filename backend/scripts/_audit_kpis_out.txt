@@ -1,0 +1,85 @@
+﻿=== LOCAL page_cache ===
+
+[fy-comparison] newest=d26aaa436757be028097aa72.json mb=0.005
+  fy-comparison summary keys: []
+
+[home-breakdowns] newest=d928dc2fbde6650725f7068d.json mb=0.087
+
+[home-summary] newest=8055b432a4d878917a154848.json mb=0.001
+
+[home-target] newest=a228d84ec14add3c1a868afa.json mb=0.0
+
+[home-trend] newest=f9ab2f64cd9f47bfa0ddf9a6.json mb=0.001
+
+[product-performance] newest=87d3c39d741baa7182ceeea3.json mb=1.363
+  product keys sample: ['sales', 'qty', 'asp', 'discountPct', 'skuCount', 'deptCount', 'siteCount', 'fastMoverCount', 'fastMoverSales', 'slowMoverCount', 'slowMoverSales', 'regularMoverCount']
+
+[sales-analyzer] newest=1dd699afaee1c0d4943a19e7.json mb=0.01
+  analyzer sales=446616905.82 soh=183689.0 disp=527622.0
+
+[sales-dashboard] newest=cecba969cf167636645daa7b.json mb=0.239
+  kpis: {'gross_sales': 537477657.0, 'gst': 26910062.17, 'ros': 1215.7668393782383, 'net_sales': 446616905.82, 'net': 44.66, 'gross': 53.75, 'net_fmt': '?44.66Cr', 'gross_fmt': '?53.75Cr'}
+
+[sales-pivot] newest=b73acdc53aeb7596743dd039.json mb=0.002
+
+[stock-overview] newest=be900dc03666aef511de2523.json mb=0.325
+  stock summary soh=233797 stores=470 rows=500
+
+[store-managers] newest=e16b3f0a7cd329ebba7ff84f.json mb=0.249
+  summary net=424874901.24 soh=233797.0 disp=618620.0 str=59.6% mgrs=40
+
+[target-vs-achieved] newest=0587c2f620e3c9e4e8e10ed9.json mb=0.163
+  target-vs-achieved summary keys: []
+
+[transfers-data] newest=9791a670b304d91b9a0b5e68.json mb=0.208
+
+[transfers-recommendations] newest=c1b01edda0f9acb264eb4b16.json mb=0.315
+
+=== AZURE page-response (newest per namespace) ===
+
+[fy-comparison] blob=0169d9574d070ecabed9475c.json mb=0.005 mtime=2026-10-12 04:58:42+00:00
+  fy-comparison summary keys: []
+
+[home-breakdowns] blob=d928dc2fbde6650725f7068d.json mb=0.087 mtime=2026-10-11 09:04:41+00:00
+
+[home-summary] blob=8055b432a4d878917a154848.json mb=0.001 mtime=2026-10-11 09:03:48+00:00
+
+[home-target] blob=a228d84ec14add3c1a868afa.json mb=0.0 mtime=2026-10-11 09:04:55+00:00
+
+[home-trend] blob=f9ab2f64cd9f47bfa0ddf9a6.json mb=0.001 mtime=2026-10-11 09:04:13+00:00
+
+[product-performance] blob=87d3c39d741baa7182ceeea3.json mb=1.345 mtime=2026-10-11 17:54:06+00:00
+  product keys sample: ['sales', 'qty', 'asp', 'discountPct', 'skuCount', 'deptCount', 'siteCount', 'fastMoverCount', 'fastMoverSales', 'slowMoverCount', 'slowMoverSales', 'regularMoverCount']
+
+[sales-analyzer] blob=1dd699afaee1c0d4943a19e7.json mb=0.01 mtime=2026-10-11 09:11:31+00:00
+  analyzer sales=446616905.82 soh=183689.0 disp=527622.0
+
+[sales-dashboard] blob=72427f56ff0a39647faba1e3.json mb=0.239 mtime=2026-10-12 04:56:28+00:00
+  kpis: {'gross_sales': 537477657.0, 'gst': 26910062.17, 'ros': 1215.7668393782383, 'net_sales': 446616905.82, 'net': 44.66, 'gross': 53.75, 'net_fmt': '?44.66Cr', 'gross_fmt': '?53.75Cr'}
+
+[sales-pivot] blob=b73acdc53aeb7596743dd039.json mb=0.002 mtime=2026-10-07 07:27:30+00:00
+
+[stock-overview] blob=be900dc03666aef511de2523.json mb=0.325 mtime=2026-10-11 09:16:54+00:00
+  stock summary soh=233797 stores=470 rows=500
+
+[store-managers] blob=e16b3f0a7cd329ebba7ff84f.json mb=0.249 mtime=2026-10-11 19:34:56+00:00
+  summary net=424874901.24 soh=233797.0 disp=618620.0 str=59.6% mgrs=40
+
+[target-vs-achieved] blob=a938b1dc66505750ad017a8b.json mb=0.163 mtime=2026-10-12 04:56:27+00:00
+  target-vs-achieved summary keys: []
+
+[transfers-data] blob=7dab3c64140e4437ec7f2a6c.json mb=0.035 mtime=2026-10-12 05:27:39+00:00
+
+[transfers-recommendations] blob=c1b01edda0f9acb264eb4b16.json mb=0.315 mtime=2026-10-09 07:26:02+00:00
+
+=== SOURCE CACHES (api_cache) ===
+  daily_inventory_movement.parquet: local=24.46MB | azure=24.0MB @2026-10-08
+  dispatch_lead_time.parquet: local=0.09MB | azure=0.09MB @2026-10-12
+  sku_breakeven.parquet: local=0.09MB | azure=0.09MB @2026-10-12
+  replenishments_recom_snapshot_v1.parquet: local=2.8MB | azure=2.8MB @2026-10-12
+  festival_comparison.json: local=0.01MB | azure=0.01MB @2026-10-12
+  financial_year_summary.parquet: local=1.75MB | azure=MISS !!
+  soh_analyzer_prepared_v5_daily_only.parquet: local=2.71MB | azure=2.71MB @2026-10-11
+
+=== ISSUE SUMMARY ===
+No KPI zero/stale flags in newest caches.

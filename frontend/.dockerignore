@@ -1,0 +1,8 @@
+# Do not bake local API URLs into production images
+.env
+.env.local
+.env.*.local
+node_modules
+dist
+.git
+*.md

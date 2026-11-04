@@ -1,0 +1,19 @@
+name: Trigger Backend Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger backend workflow
+        run: |
+          curl -X POST https://api.github.com/repos/MeridianAI-AKS/meridianai-stockpulse-backend/dispatches \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.BACKEND_TRIGGER_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -d '{"event_type":"frontend-updated"}'

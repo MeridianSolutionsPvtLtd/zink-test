@@ -1,0 +1,38 @@
+         2584244 function calls (2583952 primitive calls) in 30.008 seconds
+
+   Ordered by: cumulative time
+   List reduced from 738 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   30.008   30.008 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\routes\sales_analyzer.py:981(execute_analyzer_query)
+        1    0.000    0.000   29.999   29.999 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\financial_calendar.py:97(calendar_options)
+        1    0.000    0.000   29.999   29.999 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\financial_calendar.py:83(get_max_sales_date)
+        1    0.000    0.000   29.998   29.998 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\routes\sales_dashboard.py:829(_get_sales_df)
+        1    0.024    0.024   29.997   29.997 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\routes\sales_dashboard.py:735(_load_sales_frame)
+        1    4.154    4.154   16.168   16.168 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\routes\sales_dashboard.py:131(_normalize_columns)
+        1    0.000    0.000   13.805   13.805 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\api\routes\sales_dashboard.py:451(_read_path)
+        1    0.000    0.000   12.978   12.978 C:\Users\ChandanSoni\Downloads\merged_backend_test\merged_backend\meridianai-stockpulse-backend\pipeline\date_merge.py:45(read_csv_bytes)
+        1    0.000    0.000   12.978   12.978 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:868(read_csv)
+        1    0.096    0.096   12.978   12.978 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:583(_read)
+        1    0.000    0.000   12.802   12.802 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:1907(read)
+        1   10.514   10.514   10.727   10.727 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py:222(read)
+       47    0.002    0.000   10.581    0.225 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\managers.py:317(apply)
+       93    0.002    0.000   10.429    0.112 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\blocks.py:816(copy)
+      180   10.428    0.058   10.428    0.058 {method 'copy' of 'numpy.ndarray' objects}
+       45    0.001    0.000   10.419    0.232 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\generic.py:6684(copy)
+       45    0.001    0.000   10.416    0.231 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\managers.py:576(copy)
+       43    0.000    0.000   10.251    0.238 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\frame.py:5658(rename)
+       43    0.001    0.000   10.250    0.238 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\generic.py:1073(_rename)
+        1    0.000    0.000    2.075    2.075 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\frame.py:698(__init__)
+        1    0.000    0.000    2.075    2.075 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\construction.py:423(dict_to_mgr)
+        1    0.078    0.078    2.066    2.066 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\construction.py:96(arrays_to_mgr)
+      152    0.003    0.000    1.202    0.008 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\construction.py:517(sanitize_array)
+        1    0.000    0.000    1.193    1.193 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\internals\construction.py:596(_homogenize)
+      116    1.175    0.010    1.191    0.010 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\dtypes\cast.py:1166(maybe_infer_to_datetimelike)
+        8    0.869    0.109    0.869    0.109 {method 'read' of '_io.BufferedReader' objects}
+        1    0.000    0.000    0.824    0.824 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:1016(read_bytes)
+        2    0.000    0.000    0.805    0.402 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\accessor.py:132(wrapper)
+        2    0.000    0.000    0.805    0.402 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\accessor.py:2141(strip)
+        2    0.000    0.000    0.804    0.402 C:\Users\ChandanSoni\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\object_array.py:487(_str_strip)
+
+

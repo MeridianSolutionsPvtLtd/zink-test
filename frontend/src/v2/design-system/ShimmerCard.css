@@ -1,0 +1,114 @@
+/* Card shimmer skeleton — gradient sweep over placeholder blocks */
+.kpi-shimmer {
+  position: relative;
+  width: 100%;
+  min-height: 118px;
+  margin: 0;
+  border: 1px solid #d3d3d3;
+  border-radius: 0.9rem;
+  padding: 14px;
+  background-color: #e8e8e8;
+  overflow: hidden;
+}
+
+.dark .kpi-shimmer {
+  border-color: #334155;
+  background-color: #1e293b;
+}
+
+.kpi-shimmer::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: linear-gradient(
+    110deg,
+    rgba(232, 232, 232, 0) 0%,
+    rgba(232, 232, 232, 0) 40%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(232, 232, 232, 0) 60%,
+    rgba(232, 232, 232, 0) 100%
+  );
+  animation: kpi-shimmer-sweep 1.2s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dark .kpi-shimmer::after {
+  background: linear-gradient(
+    110deg,
+    rgba(30, 41, 59, 0) 0%,
+    rgba(30, 41, 59, 0) 40%,
+    rgba(148, 163, 184, 0.25) 50%,
+    rgba(30, 41, 59, 0) 60%,
+    rgba(30, 41, 59, 0) 100%
+  );
+}
+
+.kpi-shimmer .wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  min-height: 90px;
+}
+
+.kpi-shimmer .wrapper > div {
+  background-color: #cacaca;
+}
+
+.dark .kpi-shimmer .wrapper > div {
+  background-color: #475569;
+}
+
+.kpi-shimmer .circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.75rem;
+}
+
+.kpi-shimmer .line-1 {
+  position: absolute;
+  top: 6px;
+  left: 48px;
+  height: 9px;
+  width: 72px;
+  border-radius: 4px;
+}
+
+.kpi-shimmer .line-2 {
+  position: absolute;
+  top: 24px;
+  left: 48px;
+  height: 9px;
+  width: 48px;
+  border-radius: 4px;
+}
+
+.kpi-shimmer .line-3 {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  height: 16px;
+  width: 70%;
+  border-radius: 4px;
+}
+
+.kpi-shimmer .line-4 {
+  position: absolute;
+  top: 76px;
+  left: 0;
+  height: 8px;
+  width: 45%;
+  border-radius: 4px;
+}
+
+@keyframes kpi-shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
