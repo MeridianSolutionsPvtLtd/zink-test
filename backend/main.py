@@ -716,7 +716,12 @@ logging.critical("CRITICAL: BACKEND STARTUP IN PROGRESS")
  
 # ---------- FRONTEND BUILD PATH ----------
 BASE_DIR = Path(__file__).resolve().parent
-DIST_DIR = BASE_DIR / "public"
+# Prefer Vite's dist output; retain public for existing deployment pipelines.
+DIST_DIR = next(
+    (path for path in (BASE_DIR / "dist", BASE_DIR / "public")
+     if (path / "index.html").is_file()),
+    BASE_DIR / "dist",
+)
  
 # Mount Vite assets
 if DIST_DIR.exists():
@@ -1014,7 +1019,7 @@ def debug_db_status():
 @app.get("/")
 def serve_react():
     """Serve React frontend"""
-    if DIST_DIR.exists():
+    if (DIST_DIR / "index.html").is_file():
         return FileResponse(DIST_DIR / "index.html")
     return {"message": "Frontend build not found"}
  
