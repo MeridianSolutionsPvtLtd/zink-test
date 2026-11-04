@@ -1,0 +1,1 @@
+const c=r=>{if(r==null)return"₹0";const t=Math.abs(r),e=r<0?"-":"";if(t<1e7)return new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(r);if(t<1e9){const o=t/1e7;return`${e}₹${o.toFixed(2)} Cr`}const n=t/1e7;return`${e}₹${Math.round(n).toLocaleString()} Cr`},a=r=>r==null?"0":r.toLocaleString("en-IN");export{c as a,a as f};
